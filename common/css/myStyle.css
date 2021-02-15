@@ -1,0 +1,294 @@
+/* Stylesheet overriding bootstrap.min.css stylesheet */
+
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+/* Main Navbar and Play-Navbar - Start */
+
+#mainNav {
+    background: linear-gradient(25deg, #7f70f5, #007bff) !important;
+    color: #f8f9fa;
+}
+
+#mainNav .navbar-toggler {
+    font-size: 12px;
+    right: 0;
+    padding: 13px;
+    text-transform: uppercase;
+    color: #f8f9fa;
+    border: 0;
+    background-color: #7f70f5;
+    font-family: Montserrat, Helvetica Neue, Helvetica, Arial, sans-serif
+}
+
+#mainNav .navbar-brand {
+    color: #f8f9fa !important;
+    transform: rotate(-10deg);
+    font-family: Kaushan Script, Helvetica Neue, Helvetica, Arial, cursive
+}
+
+/*#mainNav .navbar-brand.active, #mainNav .navbar-brand:active, #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {*/
+/*    color: #f8f9fa !important;*/
+/*}*/
+
+#mainNav .navbar-nav .nav-item .nav-link {
+    font-size: 90%;
+    font-weight: 500;
+    padding: .75em 0;
+    letter-spacing: 1px;
+    color: #f8f9fa;
+    font-family: Montserrat, Helvetica Neue, Helvetica, Arial, sans-serif
+}
+
+#mainNav .navbar-nav .nav-item .login-btn-container {
+    padding: 0.5rem 0 !important;
+}
+
+#mainNav .navbar-nav .nav-item .login-btn-container .login-badge {
+    color: #7f70f5 !important;
+    background-color: #f8f9fa !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 0.2rem 0.2rem !important;
+}
+
+#mainNav .navbar-nav .nav-item .login-btn-container .login-badge:hover, #mainNav .navbar-nav .nav-item .login-btn-container .login-badge:focus {
+    background-color: #cbd3da !important;
+}
+
+@media (min-width: 992px) {
+    #mainNav {
+        padding-top: 25px;
+        padding-bottom: 25px;
+        transition: padding-top .3s, padding-bottom .3s;
+        border: none;
+    }
+
+    #mainNav .navbar-brand {
+        font-size: 1.75em;
+        transition: all .3s
+    }
+
+    #mainNav .navbar-nav .nav-item .nav-link {
+        padding: 1.1em 1em !important
+    }
+
+    #mainNav.navbar-shrink {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    #mainNav.navbar-shrink .navbar-brand {
+        font-size: 1.25em;
+        padding: 12px 0
+    }
+}
+
+#play-nav-container, #mainNav #play-link {
+    display: none;
+}
+
+@media (min-width: 992px) {
+    #mainNav .hide-links {
+        display: none;
+    }
+
+    #play-nav-container, #mainNav #play-link {
+        display: block;
+    }
+
+    #play-nav {
+        background: linear-gradient(15deg, #7f70f5, #007bff) !important;
+        position: fixed;
+        top: -6.5rem;
+        color: #f8f9fa;
+        padding-top: 3.3rem;
+        padding-bottom: 0;
+        margin: 0 auto;
+        border-radius: 1.5rem;
+        max-width: 50%;
+        transition: padding-top .3s;
+        z-index: -1;
+    }
+
+    #play-nav.play-nav-expand {
+        padding-top: 6.5rem;
+    }
+
+    #play-nav ul {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+        padding: 0.5rem 0;
+        margin-bottom: 0;
+        list-style: none;
+        -ms-flex-direction: row;
+        flex-direction: row;
+    }
+
+    #play-nav ul li {
+        padding: 0 1rem;
+    }
+
+    #play-nav ul li .nav-link {
+        font-size: 90%;
+        font-weight: 500;
+        padding: 0;
+        letter-spacing: 1px;
+        color: #f8f9fa;
+        font-family: Montserrat, Helvetica Neue, Helvetica, Arial, sans-serif
+    }
+}
+
+/* Main Navbar and Play-Navbar - End */
+
+/* Outer Div - Start */
+.outermost-div {
+    position: relative;
+    padding: 10rem 0 3.5rem 0;
+    flex: 1;
+}
+
+@media (max-width: 992px) {
+    .outermost-div {
+        padding: 7rem 0 3.5rem 0;
+    }
+}
+
+/* Outer Div - End */
+
+.inputErrors {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    color: #dc3545;
+}
+
+.deltaNums, .saveNums {
+    display: none;
+}
+
+/*.numbers-card {*/
+/*    height: 100%;*/
+/*}*/
+
+.saveNumsDiv label {
+    width: 3.5rem;
+}
+
+/*.combo-name-div input, .combo-name-div label {*/
+/*    display: none;*/
+/*}*/
+
+.bg-register-image {
+    background-image: url(/common/img/register_pug_yellow.jpeg);
+}
+
+.bg-login-image {
+    background-image: url(/common/img/login-pug.jpeg);
+}
+
+.bg-forgot-image {
+    background-image: url(/common/img/forgot_pug_red.jpeg);
+}
+
+#register-country {
+    color: #6c757d;
+}
+
+/*.register-country {*/
+/*    color: #495057 !important;*/
+/*}*/
+
+/*#profile-gender:disabled, #profile-country:disabled {*/
+/*    color: #6c757d !important;*/
+/*}*/
+
+.avatar-upload {
+    text-align: center;
+    margin: auto auto !important;
+}
+
+.avatar-preview {
+    width: 10rem;
+    height: 10rem;
+    border-radius: 100%;
+    box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.5);
+    margin: auto auto !important;
+}
+
+.avatar-preview #image-preview {
+    width: 100%;
+    height: 100%;
+    border: 0.2rem solid #f8f9fa;
+    border-radius: 100%;
+    background-image: url(/common/img/login-pug.jpeg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: auto auto !important;
+}
+
+.avatar-upload .input-div {
+    margin: 0.5rem auto 0 auto !important;
+}
+
+.image-upload-input {
+    display: none;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    margin: 0 !important;
+    color: transparent;
+    background-color: transparent;
+}
+
+.image-upload-label::after {
+    display: block;
+    content: "Change Picture";
+    margin: 0 !important;
+}
+
+textarea#contact-message {
+    max-height: 15rem;
+}
+
+/* Footer - Start */
+
+footer.page-footer {
+    padding: 25px 0;
+    text-align: center;
+    background: linear-gradient(125deg, #007bff, #7f70f5) !important;
+}
+
+footer span.copyright, footer ul.quick-links {
+    font-size: 90%;
+    line-height: 40px;
+    text-transform: none;
+    font-family: Montserrat, Helvetica Neue, Helvetica, Arial, sans-serif
+}
+
+footer ul.quick-links, ul.social-buttons {
+    margin-bottom: 0
+}
+
+ul.social-buttons li a {
+    font-size: 20px;
+    line-height: 40px;
+    display: block;
+    width: 40px;
+    height: 40px;
+    transition: all .3s;
+    color: #7f70f5;
+    border-radius: 100%;
+    outline: none;
+    background-color: #f8f9fa;
+}
+
+ul.social-buttons li a:active, ul.social-buttons li a:focus, ul.social-buttons li a:hover {
+    background-color: #cbd3da;
+}
+
+/* Footer - End */
