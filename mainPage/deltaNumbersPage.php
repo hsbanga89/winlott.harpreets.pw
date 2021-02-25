@@ -1,22 +1,40 @@
+<?php
+session_start();
+include '../common/functions_file.php';
+
+$result_returned = remember_user();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <?php
-include 'common/header.html';
+include '../common/header.php';
 ?>
 
 <body>
 
 <?php
-include 'common/navbar.php';
+include '../common/navbar.php';
 ?>
 
-<div class="container outermost-div px-3 px-sm-5">
+<div class="container outermost-div px-3 px-sm-5 text-dark">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <span class="badge badge-secondary mr-2 px-2 text-light font-weight-light">Instructions</span>
+            <small class="text-dark">Select the numbers from all 4 sets and press submit.</small>
+            <div class="mx-3">
+                <span class="fa fa-info-circle mr-2 text-secondary"></span>
+                <small>This game is designed for lotteries with 6 six numbers only. Sum of all numbers must not be
+                    greater than 45.</small>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-7">
             <h4 class="text-dark">Delta System</h4>
             <hr>
-            <form id="delta-form" action="delta.php" method="post">
+            <form id="delta-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                 <div class="form-group mb-2">
                     <label for="first-btn-group">Pick a number</label>
                     <div class="" id="first-btn-group">
@@ -139,7 +157,9 @@ include 'common/navbar.php';
                 </div>
                 <div class="form-group row mb-1 mt-3">
                     <div class="col-4 text-right">
-                        <button type="button" class="btn btn-outline-danger" id="delta-reset" name="delta-reset">Reset</button>
+                        <button type="button" class="btn btn-outline-danger" id="delta-reset" name="delta-reset">
+                            Reset
+                        </button>
                     </div>
                     <div class="col-4">
                         <button type="submit" class="btn btn-outline-dark deltaSubmit" name="nums-submit">
@@ -149,7 +169,7 @@ include 'common/navbar.php';
                 </div>
             </form>
         </div>
-        <div class="col-lg-5">
+        <div class="col-lg-5 mt-3 mt-lg-0">
             <h4 class="text-dark">Your Numbers</h4>
             <hr>
             <?php
@@ -189,10 +209,10 @@ include 'common/navbar.php';
 </div>
 
 <?php
-include 'common/footer.html';
+include '../common/footer.php';
 ?>
 
-<script src="/js/delta.js"></script>
+<script src="/js/deltaScript.js"></script>
 
 </body>
 

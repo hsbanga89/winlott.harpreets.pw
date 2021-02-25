@@ -30,10 +30,6 @@ body {
     font-family: Kaushan Script, Helvetica Neue, Helvetica, Arial, cursive
 }
 
-/*#mainNav .navbar-brand.active, #mainNav .navbar-brand:active, #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {*/
-/*    color: #f8f9fa !important;*/
-/*}*/
-
 #mainNav .navbar-nav .nav-item .nav-link {
     font-size: 90%;
     font-weight: 500;
@@ -161,26 +157,18 @@ body {
 /* Outer Div - End */
 
 .inputErrors {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-    color: #dc3545;
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    color: #dc3545 !important;
 }
 
 .deltaNums, .saveNums {
     display: none;
 }
 
-/*.numbers-card {*/
-/*    height: 100%;*/
-/*}*/
-
 .saveNumsDiv label {
     width: 3.5rem;
 }
-
-/*.combo-name-div input, .combo-name-div label {*/
-/*    display: none;*/
-/*}*/
 
 .bg-register-image {
     background-image: url(/common/img/register_pug_yellow.jpeg);
@@ -197,14 +185,6 @@ body {
 #register-country {
     color: #6c757d;
 }
-
-/*.register-country {*/
-/*    color: #495057 !important;*/
-/*}*/
-
-/*#profile-gender:disabled, #profile-country:disabled {*/
-/*    color: #6c757d !important;*/
-/*}*/
 
 .avatar-upload {
     text-align: center;

@@ -1,49 +1,26 @@
 <?php
-
-require '../mailjet/vendor/autoload.php';
-
-use \Mailjet\Resources;
-
 session_start();
-include 'common/functions_file.php';
+include '../common/functions_file.php';
+include "../common/mailjetServiceInit.php";
 
-$response = "Test";
-$pub_key = '';
-$private_key = '';
+$result_returned = remember_user();
+
+$response = "";
 $dialog_heading = "";
 $dialog_message = "";
 
 if (isset($_POST['contact-submit']) && isset($_POST['contact-name']) && isset($_POST['contact-subject'])) {
     if (isset($_POST['contact-email']) && isset($_POST['contact-message'])) {
 
-        $contact_name = inputCheck(null, $_POST['contact-name']);
-        $contact_subject = inputCheck(null, $_POST['contact-subject']);
+        $contact_name = inputCheck(false, $_POST['contact-name']);
+        $contact_subject = inputCheck(false, $_POST['contact-subject']);
 
         $filtered_email = filter_var($_POST['contact-email'], FILTER_SANITIZE_EMAIL);
-        $contact_email = inputCheck(null, $filtered_email);
+        $contact_email = inputCheck(false, $filtered_email);
 
-        $contact_message = inputCheck(null, $_POST['contact-message']);
+        $contact_message = inputCheck(false, $_POST['contact-message']);
 
-        $mj = new \Mailjet\Client($pub_key, $private_key, true, ['version' => 'v3.1']);
-        $body = [
-            'Messages' => [
-                [
-                    'From' => [
-                        'Email' => $contact_email,
-                        'Name' => $contact_name
-                    ],
-                    'To' => [
-                        [
-                            'Email' => "webmail.hs89@gmail.com",
-                            'Name' => "Winlott - User Mail"
-                        ]
-                    ],
-                    'Subject' => $contact_subject,
-                    'TextPart' => $contact_message
-                ]
-            ]
-        ];
-        $response = $mj->post(Resources::$Email, ['body' => $body]);
+        $response = sendEmail($contact_email, $contact_name, $contact_subject, $contact_message);
 
         if ($response->success() === true) {
             $dialog_heading = "Success";
@@ -57,7 +34,7 @@ if (isset($_POST['contact-submit']) && isset($_POST['contact-name']) && isset($_
 
 if (isset($dialog_heading) && !empty($dialog_heading)) {
     if (isset($dialog_message) && !empty($dialog_message)) {
-        dialog_modal($dialog_heading, $dialog_message);
+        dialog_modal($dialog_heading, $dialog_message, "Close");
     }
 }
 
@@ -67,16 +44,16 @@ if (isset($dialog_heading) && !empty($dialog_heading)) {
 <html lang="en">
 
 <?php
-include 'common/header.html';
+include '../common/header.php';
 ?>
 
 <body>
 
 <?php
-include 'common/navbar.php';
+include '../common/navbar.php';
 ?>
 
-<div class="container outermost-div px-3 px-sm-5">
+<div class="container outermost-div px-3 px-sm-5 text-dark">
     <div class="card">
         <div class="card-body p-0">
             <div class="row">
@@ -120,7 +97,7 @@ include 'common/navbar.php';
 </div>
 
 <?php
-include 'common/footer.html';
+include '../common/footer.php';
 ?>
 <script src="/js/contactScript.js"></script>
 

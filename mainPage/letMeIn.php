@@ -1,30 +1,26 @@
 <?php
-
 session_start();
-include 'common/sql/dataSqlMarriage.php';
-include 'common/functions_file.php';
+include '../common/sql/dataSqlMarriage.php';
+include '../common/functions_file.php';
+
+$result_returned = remember_user();
 
 $error_heading = "Error";
 $error_message = "";
 
 if (isset($_POST['login-button']) && $_POST['login-button'] === 'login-user') {
     if (isset($_POST['login-input-email']) && isset($_POST['login-input-password'])) {
-
-        $db_connection = openCon();
-
         $filtered_email = filter_var($_POST['login-input-email'], FILTER_SANITIZE_EMAIL);
-        $login_email = inputCheck($db_connection, $filtered_email);
+        $login_email = inputCheck(true, $filtered_email);
 
         $password_pattern = "/^[A-Z]{1}[A-Za-z0-9]{7,}$/";
         preg_match($password_pattern, $_POST['login-input-password'], $pattern_match);
 
         if (count($pattern_match) > 0) {
             if ($pattern_match[0] === $_POST['login-input-password']) {
-
-                $login_password = inputCheck($db_connection, $_POST['login-input-password']);
-
-                $user_login = "SELECT * FROM userAccounts WHERE (userEmail = '$login_email')";
-                $result_set = $db_connection->query($user_login);
+                $login_password = inputCheck(true, $_POST['login-input-password']);
+                $user_login = "SELECT * FROM useraccounts WHERE (useremail = '$login_email')";
+                $result_set = db_connect_result($user_login);
 
                 if ($result_set->num_rows < 1) {
                     $error_message = "User not Found.";
@@ -40,13 +36,13 @@ if (isset($_POST['login-button']) && $_POST['login-button'] === 'login-user') {
                     if ($hashed_password !== $user_found['password']) {
                         $error_message = "Email and/or Password mismatch.";
                     } else {
-                        $user_email = $user_found['userEmail'];
+                        $user_email = $user_found['useremail'];
                         $_SESSION['winlott-valid-name'] = $user_email;
 
                         if (isset($_POST['remember-check']) && $_POST['remember-check'] === 'remember-me') {
                             $hours = time() + 3600 * 24 * 7;
-                            setcookie('winlott-user', $user_email, $hours);
-                            setcookie('remember-me', true, $hours);
+                            setcookie('winlott-user', $user_email, $hours, '/');
+                            setcookie('remember-me', true, $hours, '/');
                         }
 
                         if (isset($_SESSION['redirected-from'])) {
@@ -58,16 +54,17 @@ if (isset($_POST['login-button']) && $_POST['login-button'] === 'login-user') {
 
                     }
                 }
+            } else {
+                $error_message = "Invalid characters in email or password";
             }
         } else {
             $error_message = "Invalid email or password";
         }
-        closeCon($db_connection);
     }
 }
 
 if (isset($error_message) && !empty($error_message)) {
-    dialog_modal($error_heading, $error_message);
+    dialog_modal($error_heading, $error_message, "Close");
 }
 
 ?>
@@ -76,16 +73,16 @@ if (isset($error_message) && !empty($error_message)) {
 <html lang="en">
 
 <?php
-include 'common/header.html';
+include '../common/header.php';
 ?>
 
 <body>
 
 <?php
-include 'common/navbar.php';
+include '../common/navbar.php';
 ?>
 
-<div class="container outermost-div px-3 px-sm-5">
+<div class="container outermost-div px-3 px-sm-5 text-dark">
     <div class="card">
         <div class="card-body p-0">
             <div class="row">
@@ -111,7 +108,7 @@ include 'common/navbar.php';
                                 <div class="custom-control custom-checkbox">
                                     <div class="form-check">
                                         <input class="custom-control-input" type="checkbox" id="remember-check"
-                                               name="remember-check" value="remember-me"">
+                                               name="remember-check" value="remember-me">
                                         <label class="custom-control-label" for="remember-check">Remember Me</label>
                                     </div>
                                 </div>
@@ -121,8 +118,9 @@ include 'common/navbar.php';
                             </button>
                             <hr>
                         </form>
-                        <div class="text-center"><a class="small" href="/contact.php">Forgot Password?</a></div>
-                        <div class="text-center"><a class="small" href="/register.php">Create an Account</a></div>
+                        <div class="text-center"><a class="small" href="/mainPage/contact.php">Forgot Password?</a></div>
+                        <div class="text-center"><a class="small" href="/mainPage/registerGuest.php">Create an
+                                Account</a></div>
                     </div>
                 </div>
             </div>
@@ -131,9 +129,9 @@ include 'common/navbar.php';
 </div>
 
 <?php
-include 'common/footer.html';
+include '../common/footer.php';
 ?>
-<script src="/js/login.js"></script>
+<script src="/js/loginScript.js"></script>
 
 </body>
 

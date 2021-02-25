@@ -12,28 +12,30 @@
                     <a class="nav-link js-scroll-trigger text-light" href="#">Play</a>
                 </li>
                 <li class="nav-item hide-links">
-                    <a class="nav-link js-scroll-trigger text-light" href="/lucky.php">Lucky Numbers</a>
-                </li>
-
-                <li class="nav-item hide-links">
-                    <a class="nav-link js-scroll-trigger text-light" href="/saves.php">Save Numbers</a>
+                    <a class="nav-link js-scroll-trigger text-light" href="/mainPage/deltaNumbersPage.php">Delta
+                        System</a>
                 </li>
                 <li class="nav-item hide-links">
-                    <a class="nav-link js-scroll-trigger text-light" href="/delta.php">Delta System</a>
+                    <a class="nav-link js-scroll-trigger text-light" href="/mainPage/luckyNumbersPage.php">Lucky
+                        Numbers</a>
+                </li>
+                <li class="nav-item hide-links">
+                    <a class="nav-link js-scroll-trigger text-light" href="/mainPage/saveNumbersPage.php">Save
+                        Numbers</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link js-scroll-trigger text-light" href="/results.php">Results</a>
+                    <a class="nav-link js-scroll-trigger text-light" href="/mainPage/lottResultsPage.php">Results</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link js-scroll-trigger text-light" href="/contact.php">Contact</a>
+                    <a class="nav-link js-scroll-trigger text-light" href="/mainPage/contact.php">Contact</a>
                 </li>
                 <li class="nav-item">
                     <?php
 
-                    if (isset($_SESSION['winlott-valid-name']) || (isset($_COOKIE['winlott-user']) && isset($_COOKIE['remember-me']))) {
-                        echo "<a href='/photoFrame.php' class='nav-link js-scroll-trigger text-light'>Account</a>";
+                    if (isset($result_returned)) {
+                        echo "<a href='/mainPage/photoFrame.php' class='nav-link js-scroll-trigger text-light'>Account</a>";
                     } else {
-                        echo "<div class='login-btn-container ml-3'><a href='/login.php' class='nav-link login-badge'>Login</a></div>";
+                        echo "<div class='login-btn-container ml-3'><a href='/mainPage/letMeIn.php' class='nav-link login-badge'>Login</a></div>";
                     }
 
                     ?>
@@ -42,7 +44,7 @@
                     <div class="login-btn-container ml-3">
                         <?php
 
-                        if (isset($_SESSION['winlott-valid-name']) || (isset($_COOKIE['winlott-user']) && isset($_COOKIE['remember-me']))) {
+                        if (isset($result_returned)) {
                             echo "<a href='/outTheDoor.php' class='nav-link login-badge'><span class='fa fa-sign-out'></span></a>";
                         }
 
@@ -57,13 +59,13 @@
     <div class="navbar fixed-top" id="play-nav">
         <ul class="mx-auto">
             <li class="nav-item">
-                <a class="nav-link text-light" href="/lucky.php">Lucky Numbers</a>
+                <a class="nav-link text-light" href="/mainPage/deltaNumbersPage.php">Delta System</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-light" href="/saves.php">Save Numbers</a>
+                <a class="nav-link text-light" href="/mainPage/luckyNumbersPage.php">Lucky Numbers</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-light" href="/delta.php">Delta System</a>
+                <a class="nav-link text-light" href="/mainPage/saveNumbersPage.php">Save Numbers</a>
             </li>
         </ul>
     </div>

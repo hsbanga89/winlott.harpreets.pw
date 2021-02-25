@@ -1,30 +1,27 @@
 <?php
-
 session_start();
-include 'common/sql/dataSqlMarriage.php';
-include 'common/functions_file.php';
+include '../common/sql/dataSqlMarriage.php';
+include '../common/functions_file.php';
 
-$result_returned = remember_user('/saves/php');
+$result_returned = remember_user();
 
 if (isset($result_returned)) {
     $user_email = $result_returned;
 
-    if (!isset($_SERVER['HTTP_SUBMIT_VALUE'])) {
-        $get_saved_names = "SELECT comboName from savecombo WHERE userEmail = '$user_email'";
-        $db_connection = opencon();
-        $result_set = $db_connection->query($get_saved_names);
+    if (isset($_SERVER['HTTP_SUBMIT_VALUE']) && $_SERVER['HTTP_SUBMIT_VALUE'] === 'getComboNames') {
+        $get_saved_names = "SELECT comboname from savecombo WHERE useremail = '$user_email'";
+        $result_set = db_connect_result($get_saved_names);
 
         $combo_names_array = array();
 
         if ($result_set->num_rows > 0) {
             while ($row = $result_set->fetch_assoc()) {
-                $combo_names_array[] = $row['comboName'];
+                $combo_names_array[] = $row['comboname'];
             }
         }
-        closeCon($db_connection);
 
-//    Sending all combo names to ajax to stop duplicate names from being used
-        echo json_encode($combo_names_array);
+//    Sending all combo names to jQuery to stop duplicate names from being used
+        send_to_ajax($combo_names_array);
     }
 
 //    Code to save single numbers or combinations depending on the radio option selected
@@ -39,17 +36,15 @@ if (isset($result_returned)) {
 
 //            If individual radio option is selected
             if ($_POST['optionsRadio'] == 1) {
-
-                $db_connection = openCon();
-                $get_user = "SELECT lottSingle FROM savesingles WHERE userEmail = '$user_email'";
-                $result_set = $db_connection->query($get_user);
+                $get_user = "SELECT lottsingle FROM savesingles WHERE useremail = '$user_email'";
+                $result_set = db_connect_result($get_user);
 
                 if ($result_set->num_rows > 0) {
                     while ($row = $result_set->fetch_assoc()) {
 
 //                        If the selected numbers are already saved, search index and push to duplicates array
-                        if (in_array($row['lottSingle'], $savedNums)) {
-                            $value_index = array_search($row['lottSingle'], $savedNums);
+                        if (in_array($row['lottsingle'], $savedNums)) {
+                            $value_index = array_search($row['lottsingle'], $savedNums);
                             array_push($duplicate_nums, $savedNums[$value_index]);
                             unset($savedNums[$value_index]);
                         }
@@ -62,25 +57,21 @@ if (isset($result_returned)) {
                 }
 
                 for ($i = 0; $i < count($unique_nums); $i++) {
-                    $insert_single = "INSERT INTO savesingles(userEmail, saveDate, lottSingle) VALUES ('" . $user_email . "', '" . $date_array['this-date'] . "', " . $unique_nums[$i] . ")";
-                    $db_connection->query($insert_single);
+                    $insert_single = "INSERT INTO savesingles(useremail, savedate, lottsingle) VALUES ('" . $user_email . "', '" . $date_array['this-date'] . "', " . $unique_nums[$i] . ")";
+                    db_connect_result($insert_single);
                 }
-
-                closeCon($db_connection);
-                print_nums("Numbers saved", $unique_nums, "Numbers already present", $duplicate_nums);
+                send_to_ajax("Numbers saved", $unique_nums, "Numbers already present", $duplicate_nums);
             }
 
-            if ($_POST['optionsRadio'] == 2) {
-
-                $db_connection = openCon();
-                $get_user = "SELECT comboNum1, comboNum2, comboNum3, comboNum4, comboNum5, comboNum6, comboNum7, comboNum8 FROM savecombo WHERE userEmail = '$user_email'";
-                $result_set = $db_connection->query($get_user);
+            if ($_POST['optionsRadio'] == 2 && isset($_POST['comboName']) && strlen($_POST['comboName']) <= 30) {
+                $get_user = "SELECT combonum1, combonum2, combonum3, combonum4, combonum5, combonum6, combonum7, combonum8 FROM savecombo WHERE useremail = '$user_email'";
+                $result_set = db_connect_result($get_user);
 
 //                Sort the sent combination
                 asort($savedNums);
 
 //                Store combination name
-                $combo_name = $_POST['comboName'];
+                $combo_name = inputCheck(true, $_POST['comboName']);
 
                 if ($result_set->num_rows > 0) {
                     while ($row = $result_set->fetch_assoc()) {
@@ -112,20 +103,20 @@ if (isset($result_returned)) {
                     $combo_column_array = array();
 
                     for ($i = 0; $i < count($unique_nums); $i++) {
-                        $combo_column_array[$i] = "comboNum" . ($i + 1);
+                        $combo_column_array[$i] = "combonum" . ($i + 1);
                     }
 
                     $combo_column_names = implode(", ", $combo_column_array);
                     $combo_column_fields = implode(",", $unique_nums);
 
-                    $insert_combo = "INSERT INTO savecombo(userEmail, saveDate, comboName," . $combo_column_names . ") VALUES ('$user_email', '" . $date_array['this-date'] . "', '$combo_name', $combo_column_fields)";
-                    $db_connection->query($insert_combo);
+                    $insert_combo = "INSERT INTO savecombo(useremail, savedate, comboname," . $combo_column_names . ") VALUES ('$user_email', '" . $date_array['this-date'] . "', '$combo_name', $combo_column_fields)";
+                    db_connect_result($insert_combo);
                 }
-
-                closeCon($db_connection);
-                print_nums("Combination saved", $unique_nums, "Combination already present", $duplicate_nums);
+                send_to_ajax("Combination saved", $unique_nums, "Combination already present", $duplicate_nums);
             }
         }
     }
+} else {
+    display_login_page('/mainPage/saveNumbersPage.php');
 }
 

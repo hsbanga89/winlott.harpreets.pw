@@ -1,7 +1,10 @@
 <?php
+session_start();
+include '../common/sql/dataSqlMarriage.php';
+include '../common/functions_file.php';
+include '../common/mailjetServiceInit.php';
 
-include 'common/sql/dataSqlMarriage.php';
-include 'common/functions_file.php';
+$result_returned = remember_user();
 
 $error_heading = "Error";
 $error_message = "";
@@ -9,20 +12,17 @@ $error_message = "";
 if (isset($_POST['register-button']) && $_POST['register-button'] === 'register-user') {
     if (isset($_POST['register-first-name']) && isset($_POST['register-last-name']) && isset($_POST['register-birth-date']) && isset($_POST['register-country'])) {
         if (isset($_POST['register-email']) && isset($_POST['register-password']) && isset($_POST['register-password-repeat'])) {
-
-            $db_connection = openCon();
-
-            $register_firstname = inputCheck($db_connection, $_POST['register-first-name']);
-            $register_lastname = inputCheck($db_connection, $_POST['register-last-name']);
-            $register_birthday = inputCheck($db_connection, $_POST['register-birth-date']);
-            $register_country = inputCheck($db_connection, $_POST['register-country']);
-            $register_email = inputCheck($db_connection, $_POST['register-email']);
-            $register_password = inputCheck($db_connection, $_POST['register-password']);
-            $register_repeat_password = inputCheck($db_connection, $_POST['register-password-repeat']);
+            $register_firstname = inputCheck(true, $_POST['register-first-name']);
+            $register_lastname = inputCheck(true, $_POST['register-last-name']);
+            $register_birthday = inputCheck(true, $_POST['register-birth-date']);
+            $register_country = inputCheck(true, $_POST['register-country']);
+            $register_email = inputCheck(true, $_POST['register-email']);
+            $register_password = inputCheck(true, $_POST['register-password']);
+            $register_repeat_password = inputCheck(true, $_POST['register-password-repeat']);
 
             // New User Check
-            $check_user = "SELECT * FROM userAccounts WHERE userEmail = '$register_email'";
-            $result_set = $db_connection->query($check_user);
+            $check_user = "SELECT * FROM useraccounts WHERE useremail = '$register_email'";
+            $result_set = db_connect_result($check_user);
 
             if ($result_set->num_rows >= 1) {
                 $error_message = "User already exists.";
@@ -35,22 +35,21 @@ if (isset($_POST['register-button']) && $_POST['register-button'] === 'register-
                     $password_salt = $register_email . $birthday_to_date;
                     $hash_password = hash('sha512', $register_password . $password_salt);
 
-                    $add_user = "INSERT INTO userAccounts(userEmail, password, firstName, lastName, birthday, country)
+                    $add_user = "INSERT INTO useraccounts(useremail, password, firstname, lastname, birthday, country)
                             VALUES('$register_email', '$hash_password', '$register_firstname', '$register_lastname','$register_birthday','$register_country')";
 
-                    $db_connection->query($add_user);
+                    db_connect_result($add_user);
+                    sendEmail($register_email, $register_lastname, 'New user registered!', 'This user has just registered on Winlott Website. Email: ' . $register_email);
 
-                    session_start();
-                    redirectTo(0.1, 'login.php');
+                    redirectTo(0.1, 'letMeIn.php');
                 }
             }
-            closeCon($db_connection);
         }
     }
 }
 
 if (isset($error_message) && !empty($error_message)) {
-    dialog_modal($error_heading, $error_message);
+    dialog_modal($error_heading, $error_message, "Close");
 }
 
 ?>
@@ -59,16 +58,16 @@ if (isset($error_message) && !empty($error_message)) {
 <html lang="en">
 
 <?php
-include 'common/header.html';
+include '../common/header.php';
 ?>
 
 <body>
 
 <?php
-include 'common/navbar.php';
+include '../common/navbar.php';
 ?>
 
-<div class="container outermost-div px-3 px-sm-5">
+<div class="container outermost-div px-3 px-sm-5 text-dark">
     <div class="card">
         <div class="card-body p-0">
             <div class="row">
@@ -385,7 +384,7 @@ include 'common/navbar.php';
                         </form>
                         <hr>
                         <div class="text-center">
-                            <a class="small" href="login.php">Already have an account? Login!</a>
+                            <a class="small" href="letMeIn.php">Already have an account? Login!</a>
                         </div>
                     </div>
                 </div>
@@ -395,9 +394,9 @@ include 'common/navbar.php';
 </div>
 
 <?php
-include 'common/footer.html';
+include '../common/footer.php';
 ?>
-<script src="/js/register.js"></script>
+<script src="/js/registerScript.js"></script>
 
 </body>
 

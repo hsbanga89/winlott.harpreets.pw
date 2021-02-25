@@ -1,13 +1,10 @@
 <?php
-
 session_start();
-include 'common/sql/dataSqlMarriage.php';
-include 'common/functions_file.php';
+include '../common/functions_file.php';
 
-$result_returned = remember_user(htmlspecialchars($_SERVER['PHP_SELF']));
-
+$result_returned = remember_user();
 if (!isset($result_returned)) {
-    die();
+    display_login_page(htmlspecialchars($_SERVER['PHP_SELF']));
 }
 
 ?>
@@ -16,16 +13,28 @@ if (!isset($result_returned)) {
 <html lang="en">
 
 <?php
-include 'common/header.html';
+include '../common/header.php';
 ?>
 
 <body>
 
 <?php
-include 'common/navbar.php';
+include '../common/navbar.php';
 ?>
 
-<div class="container outermost-div px-3 px-sm-5">
+<div class="container outermost-div px-3 px-sm-5 text-dark">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <span class="badge badge-secondary mr-2 px-2 text-light font-weight-light">Instructions</span>
+            <small class="text-dark">Save numbers individually or a combination (set) of numbers to use as your lucky
+                numbers</small>
+            <div class="mx-3">
+                <span class="fa fa-info-circle mr-2 text-secondary"></span>
+                <small>Up to 6 <b>Individual Numbers</b> can be saved in one go. <b>Combination Numbers</b> must consist
+                    of 6 - 8 numbers and a unique combination name must be declared.</small>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-7">
             <h4 class="text-dark">Save Numbers</h4>
@@ -232,13 +241,16 @@ include 'common/navbar.php';
                                 Title</label>
                             <div class="col-sm-7 col-xl-8">
                                 <input type="text" class="form-control text-left" id="combo-name" name="comboName"
-                                       placeholder="e.g. combo1">
+                                       placeholder="e.g. combo1" pattern="^[A-Za-z-_0-9]{1,30}$" data-toggle="tooltip"
+                                       title="No more than 30 characters, can contain A-Z a-z - _ 0-9" maxlength="30">
                             </div>
                         </div>
                     </div>
                     <div class="text-center my-3">
                         <div class="d-inline mx-2">
-                            <button type="button" class="btn btn-outline-danger" id="save-reset" name="save-nums-reset">Reset</button>
+                            <button type="button" class="btn btn-outline-danger" id="save-reset" name="save-nums-reset">
+                                Reset
+                            </button>
                         </div>
                         <div class="d-inline mx-2">
                             <button type="submit" class="btn btn-outline-dark saveSubmit" name="save-nums-submit">Submit
@@ -257,10 +269,10 @@ include 'common/navbar.php';
 </div>
 
 <?php
-include 'common/footer.html';
+include '../common/footer.php';
 ?>
 
-<script src="/js/saves.js"></script>
+<script src="/js/savesScript.js"></script>
 
 </body>
 

@@ -52,26 +52,42 @@ $(document).ready(function () {
         showComboNameInput();
 
         $.ajax({
-            url: "/savesAjax.php",
+            url: "/ajaxPhp/savesAjax.php",
             type: "GET",
+            headers: {'submit-value': 'getComboNames'},
             data: {},
             dataType: "text"
         }).done(function (data) {
-            let namesArray = JSON.parse(data);
+            let namesArray;
 
-            $.each(namesArray, function (index, value) {
-                comboNamesArray.push(value);
-            });
+            try {
+                namesArray = JSON.parse(data);
+                for (let i = 0; i < namesArray.length; i++) {
+                    for (let j = 0; j < namesArray[i].length; j++) {
+                        comboNamesArray.push(namesArray[i][j]);
+                    }
+                }
+            } catch (e) {
+                let errorMessage = "Something went Wrong!";
+            }
         });
     });
 
-    comboNameInput.on("keyup keydown", function () {
-        if ($.inArray(comboNameInput.val(), comboNamesArray) >= 0) {
+    comboNameInput.on("input", function () {
+        if ($.inArray(comboNameInput.val().slice(0, 30), comboNamesArray) >= 0) {
             comboNamePresent = true;
-            comboNameInput.addClass("inputErrors");
+            comboNameInput.css({
+                "border-color": "#dc3545",
+                "box-shadow": "0 0 0 0.2rem rgba(220, 53, 69, 0.25)",
+                "color": "#dc3545"
+            });
         } else {
             comboNamePresent = false;
-            comboNameInput.removeClass("inputErrors");
+            comboNameInput.css({
+                "border-color": "",
+                "box-shadow": "",
+                "color": ""
+            });
         }
     });
 
@@ -100,32 +116,35 @@ $(document).ready(function () {
         evt.preventDefault();
 
         $.ajax({
-            url: "/savesAjax.php",
+            url: "/ajaxPhp/savesAjax.php",
             method: "POST",
-            headers: {'Submit-Value': 'saveSubmit'},
             data: savesForm.serializeArray(),
             dataType: "text"
         }).done(function (data) {
-            console.log(data);
-            let jsonParsedData = JSON.parse(data);
-            let prepareSavedNumsDiv = [];
+            try {
+                let jsonParsedData = JSON.parse(data);
+                let prepareSavedNumsDiv = [];
 
-            $.each(jsonParsedData, function (key, val) {
+                $.each(jsonParsedData, function (key, val) {
 
-                if (val.length !== 0 && typeof val === 'object') {
-                    prepareSavedNumsDiv.push("<div class='form-group'>");
-                    prepareSavedNumsDiv.push("<h6>" + jsonParsedData[key - 1] + "</h6>");
-                    prepareSavedNumsDiv.push("<div class='d-inline-flex'>");
+                    if (val.length !== 0 && typeof val === 'object') {
+                        prepareSavedNumsDiv.push("<div class='form-group'>");
+                        prepareSavedNumsDiv.push("<h6>" + jsonParsedData[key - 1] + "</h6>");
+                        prepareSavedNumsDiv.push("<div class='d-inline-flex'>");
 
-                    for (let i = 0; i < val.length; i++) {
-                        prepareSavedNumsDiv.push("<span class='badge badge-primary font-weight-light m-1' style='font-size: 1.3rem; width: 2.5rem;'>"
-                            + val[i] +
-                            "</span>");
+                        for (let i = 0; i < val.length; i++) {
+                            prepareSavedNumsDiv.push("<span class='badge badge-primary font-weight-light m-1' style='font-size: 1.3rem; width: 2.5rem;'>"
+                                + val[i] +
+                                "</span>");
+                        }
+                        prepareSavedNumsDiv.push("</div></div>");
                     }
-                    prepareSavedNumsDiv.push("</div></div>");
-                }
-            });
-            printSavedNumsDiv.html(prepareSavedNumsDiv.join(' '));
+                });
+                printSavedNumsDiv.html(prepareSavedNumsDiv.join(' '));
+
+            } catch (e) {
+                let errorMessage = "Something went wrong!";
+            }
         });
         resetForm();
     });

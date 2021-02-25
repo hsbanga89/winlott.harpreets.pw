@@ -1,84 +1,141 @@
 <?php
 session_start();
-include 'common/sql/dataSqlMarriage.php';
-include 'common/functions_file.php';
+include '../common/sql/dataSqlMarriage.php';
+include '../common/functions_file.php';
 
-$result_returned = remember_user(htmlspecialchars($_SERVER['PHP_SELF']));
+$result_returned = remember_user();
 
-$user_email = "";
-$user_firstName = "First Name";
-$user_lastName = "Last Name";
-$user_birthday = "DD/MM/YYYY";
-$user_phoneNumber = "Phone Number";
-$user_gender = "Gender";
-$user_country = "Country";
-$user_postcode = "Post Code";
-$user_stateName = "State/Province";
-$user_suburbName = "City/Suburb";
-$user_streetAddress = "Street Address";
+$prefill_email = "";
+$prefill_profile_array = [
+    'firstname' => "",
+    'lastname' => "",
+    'birthday' => "",
+    'phonenumber' => "",
+    'gender' => "",
+    'country' => "",
+    'postcode' => "",
+    'statename' => "",
+    'suburbname' => "",
+    'streetaddress' => ""
+];
+
+$error_heading = "Error";
+$error_message = "";
 
 if (isset($result_returned)) {
+    $prefill_email = $result_returned;
 
-    $user_email = $result_returned;
+    function populate_profile($user_email): array
+    {
+        $fields_array = array();
+        $get_user_details = "SELECT firstname, lastname, birthday, phonenumber, gender, country, postcode, statename, suburbname, streetaddress FROM useraccounts WHERE (useremail = '$user_email')";
+        $result_set = db_connect_result($get_user_details);
 
-    $db_connection = openCon();
-    $get_user_details = "SELECT * FROM useraccounts WHERE (userEmail = '$user_email')";
-    $result_set = $db_connection->query($get_user_details);
+        if ($result_set->num_rows == 1) {
+            $profile_found = $result_set->fetch_assoc();
+            while ($profile_column = $result_set->fetch_field()) {
+                $column_name = $profile_column->name;
 
-    if ($result_set->num_rows == 1) {
+                if (!empty($profile_found[$column_name])) {
+                    if ($column_name === 'birthday') {
+                        $fields_array[$column_name] = date('d F Y', strtotime($profile_found[$column_name]));
+                    } elseif ($column_name === 'phonenumber') {
+                        if (strlen($profile_found['phonenumber']) < 10) {
+                            $fields_array[$column_name] = '0' . $profile_found['phonenumber'];
+                        }
+                    } else {
+                        $fields_array[$column_name] = $profile_found[$column_name];
+                    }
+                }
+            }
+        }
+        return $fields_array;
+    }
+
+    if (!isset($_POST['profile-save-button'])) {
+        $prefill_profile_array = populate_profile($prefill_email);
+    }
+
+    if (isset($_POST['change-passwd-save-btn']) && !empty($prefill_profile_array)) {
+        if (!empty($_POST['current-password']) && !empty($_POST['new-password']) && !empty($_POST['repeat-password'])) {
+            $current_password = inputCheck(true, $_POST['current-password']);
+            $new_password = inputCheck(true, $_POST['new-password']);
+            $repeat_password = inputCheck(true, $_POST['repeat-password']);
+
+            $password_pattern = "/^[A-Z]{1}[A-Za-z0-9]{7,}$/";
+            preg_match($password_pattern, $current_password, $current_password_regex_match);
+
+            if (count($current_password_regex_match) > 0) {
+                if ($current_password_regex_match[0] === $current_password) {
+
+                    preg_match($password_pattern, $new_password, $new_password_regex_match);
+                    if (count($new_password_regex_match) > 0) {
+                        if ($new_password_regex_match[0] === $new_password) {
+
+                            if ($new_password === $repeat_password) {
+                                $get_user_password = "SELECT birthday, password FROM useraccounts WHERE (useremail = '$prefill_email')";
+                                $result_set = db_connect_result($get_user_password);
+                                $profile_found = $result_set->fetch_assoc();
+
+                                $birthday_to_date = date('d-m-Y', strtotime($prefill_profile_array['birthday']));
+                                $password_salt = $prefill_email . $birthday_to_date;
+
+                                $old_hashed_password = hash('sha512', $current_password . $password_salt);
+                                $new_hashed_password = hash('sha512', $new_password . $password_salt);
+
+                                if ($old_hashed_password !== $profile_found['password']) {
+                                    $error_message = "Incorrect Current Password";
+                                } else {
+                                    $update_password = "UPDATE useraccounts SET password = '$new_hashed_password' WHERE (useremail = '$prefill_email')";
+                                    db_connect_result($update_password);
+                                    $error_message = "Password Updated";
+                                }
+                            } else {
+                                $error_message = "New Password DOES NOT match Repeat Password";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (isset($_POST['profile-save-button']) && $_POST['profile-save-button'] === 'profile-save') {
+        $posted_profile_fields = array();
+
+        foreach ($_POST as $index => $item) {
+            if (!empty($item)) {
+                $posted_profile_fields[$index] = inputCheck(true, $item);
+            }
+        }
+
+        $get_user_details = "SELECT * FROM useraccounts WHERE (useremail = '$prefill_email')";
+        $result_set = db_connect_result($get_user_details);
         $profile_found = $result_set->fetch_assoc();
 
-        while ($profile_column = $result_set->fetch_field()) {
-            $column_name = $profile_column->name;
+        if ($result_set->num_rows === 1) {
+            $all_update_fields = "";
 
-            if (!empty($profile_found[$column_name])) {
-                $concat_strings = "user_" . $column_name;
-
-                if ($column_name === "birthday") {
-                    $$concat_strings = date('d F Y', strtotime($profile_found[$column_name]));
-                } else {
-                    $$concat_strings = $profile_found[$column_name];
+            foreach ($posted_profile_fields as $index => $item) {
+                foreach ($profile_found as $key => $value) {
+                    if (substr($index, 8) === $key && $item !== $value) {
+                        $all_update_fields .= substr($index, 8) . " = '" . $item . "',";
+                    }
                 }
             }
+
+            $all_update_fields = substr($all_update_fields, 0, strlen($all_update_fields) - 1);
+            $update_profile_query = "UPDATE useraccounts SET " . $all_update_fields . " WHERE (useremail = '$prefill_email')";
+            $result_set = db_connect_result($update_profile_query);
         }
-        closeCon($db_connection);
-    }
-
-    if (isset($user_email) && isset($_POST['change-passwd-save-btn'])) {
-        if (!empty($_POST['current-password']) && !empty($_POST['new-password']) && !empty($_POST['repeat-password'])) {
-
-            $db_connection = openCon();
-
-            $current_password = inputCheck($db_connection, $_POST['current-password']);
-            $new_password = inputCheck($db_connection, $_POST['new-password']);
-            $repeat_password = inputCheck($db_connection, $_POST['repeat-password']);
-
-            if ($new_password === $repeat_password) {
-
-                $get_user_password = "SELECT password FROM useraccounts WHERE (userEmail = '$user_email')";
-                $result_set = $db_connection->query($get_user_password);
-                $profile_found = $result_set->fetch_assoc();
-
-                $birthday_to_date = date('d-m-Y', strtotime($user_birthday));
-                $password_salt = $user_email . $birthday_to_date;
-
-                $old_hashed_password = hash('sha512', $current_password . $password_salt);
-                $new_hashed_password = hash('sha512', $new_password . $password_salt);
-
-                if ($old_hashed_password !== $profile_found['password']) {
-                    $message = "Passwords mismatch.";
-                } else {
-                    $update_password = "UPDATE useraccounts SET password = '$new_hashed_password' WHERE (userEmail = '$user_email')";
-                    $db_connection->query($update_password);
-                    $message = "Password Updated.";
-                }
-
-            }
-        }
-        closeCon($db_connection);
+        $prefill_profile_array = populate_profile($prefill_email);
     }
 } else {
-    die();
+    display_login_page(htmlspecialchars($_SERVER['PHP_SELF']));
+}
+
+if (isset($error_message) && !empty($error_message)) {
+    dialog_modal($error_heading, $error_message, "Close");
 }
 
 ?>
@@ -87,19 +144,19 @@ if (isset($result_returned)) {
 <html lang="en">
 
 <?php
-include 'common/header.html';
+include '../common/header.php';
 ?>
 
 <body>
 
 <?php
-include 'common/navbar.php';
+include '../common/navbar.php';
 ?>
 
-<div class="container outermost-div px-3 px-sm-5">
+<div class="container outermost-div px-3 px-sm-5 text-dark">
     <h4 class="text-dark">Profile</h4>
     <hr>
-    <form>
+    <form id="profile-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
         <div class="row py-2">
             <div class="col-md-4">
                 <div class="dp-div">
@@ -123,44 +180,51 @@ include 'common/navbar.php';
                 </div>
                 <div class="form-row form-group">
                     <div class="col-md-6">
-                        <input type="text"
-                               class="form-control mb-3 mb-md-0 profile-editable-inputs"
-                               id="profile-first-name" data-toggle="tooltip" data-placement="top"
-                               title="e.g. Chris" placeholder="First Name"
-                               value="<?php echo $user_firstName; ?>" disabled>
+                        <input type="text" id="profile-first-name" name="profile-firstname"
+                               class="form-control mb-3 mb-md-0 profile-editable-inputs" placeholder="First Name"
+                               value="<?php echo !empty($prefill_profile_array['firstname']) ? $prefill_profile_array['firstname'] : ''; ?>"
+                               pattern="^[A-Za-z ,.'-]{1,30}$"
+                               data-toggle="tooltip" title="No more than 30 characters, can contain A-Z a-z - . ' ,"
+                               disabled>
                     </div>
                     <div class="col-md-6">
-                        <input type="text" class="form-control profile-editable-inputs"
-                               id="profile-last-name"
-                               data-toggle="tooltip" data-placement="top" title="e.g. Pine"
-                               placeholder="Last Name" value="<?php echo $user_lastName; ?>" disabled>
-                    </div>
-                </div>
-                <div class="form-row form-group">
-                    <div class="col-md-6">
-                        <input type="email" class="form-control mb-3 mb-md-0" id="profile-email"
-                               placeholder="<?php echo $user_email; ?>" disabled>
-                    </div>
-                    <div class="col-md-6">
-                        <input type="text" class="form-control" id="profile-birthday"
-                               placeholder="<?php echo $user_birthday; ?>" disabled>
+                        <input type="text" id="profile-last-name" name="profile-lastname"
+                               class="form-control profile-editable-inputs" placeholder="Last Name"
+                               value="<?php echo !empty($prefill_profile_array['lastname']) ? $prefill_profile_array['lastname'] : ''; ?>"
+                               pattern="^[A-Za-z ,.'-]{1,30}$"
+                               data-toggle="tooltip" title="No more than 30 characters, can contain A-Z a-z - . ' ,"
+                               disabled>
                     </div>
                 </div>
                 <div class="form-row form-group">
                     <div class="col-md-6">
-                        <input type="tel" pattern="[0-9]{10}"
-                               class="form-control mb-3 mb-md-0 profile-editable-inputs"
-                               id="profile-mobile"
-                               data-toggle="tooltip" title="e.g. 0423456789"
-                               placeholder="Phone Number" value="<?php echo $user_phoneNumber; ?>" disabled>
+                        <input type="email" id="profile-email" class="form-control mb-3 mb-md-0"
+                               placeholder="Email Address"
+                               value="<?php echo !empty($prefill_email) ? $prefill_email : ''; ?>" disabled>
                     </div>
                     <div class="col-md-6">
-                        <select required disabled class="form-control profile-editable-select"
-                                id="profile-gender" name="profile-gender">
-                            <option value="" selected disabled hidden><?php echo $user_gender; ?></option>
+                        <input type="text" id="profile-birthday" class="form-control"
+                               placeholder="Date of Birth"
+                               value="<?php echo !empty($prefill_profile_array['birthday']) ? $prefill_profile_array['birthday'] : ''; ?>"
+                               disabled>
+                    </div>
+                </div>
+                <div class="form-row form-group">
+                    <div class="col-md-6">
+                        <input type="tel" id="profile-mobile" name="profile-phonenumber"
+                               class="form-control mb-3 mb-md-0 profile-editable-inputs" placeholder="Phone Number"
+                               value="<?php echo !empty($prefill_profile_array['phonenumber']) ? $prefill_profile_array['phonenumber'] : ''; ?>"
+                               pattern="^[0-9]{10}$" data-toggle="tooltip"
+                               title="Must be 10 digits, exclude country code" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <select disabled id="profile-gender" name="profile-gender"
+                                class="form-control profile-editable-select">
+                            <option value="" selected disabled
+                                    hidden><?php echo !empty($prefill_profile_array['gender']) ? $prefill_profile_array['gender'] : 'Gender'; ?></option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
-                            <option value="None">Rather not say</option>
+                            <option value="Rather not say">Rather not say</option>
                         </select>
                     </div>
                 </div>
@@ -173,9 +237,11 @@ include 'common/navbar.php';
             </div>
             <div class="form-row form-group">
                 <div class="col-md-4">
-                    <select required disabled class="form-control mb-3 mb-md-0 profile-editable-select"
-                            id="profile-country" name="profile-country">
-                        <option value="" selected hidden><?php echo $user_country; ?></option>
+                    <select disabled id="profile-country" name="profile-country"
+                            class="form-control mb-3 mb-md-0 profile-editable-select">
+                        <option value="" selected disabled hidden>
+                            <?php echo !empty($prefill_profile_array['country']) ? $prefill_profile_array['country'] : ''; ?>
+                        </option>
                         <option value="Afganistan">Afghanistan</option>
                         <option value="Albania">Albania</option>
                         <option value="Algeria">Algeria</option>
@@ -425,27 +491,34 @@ include 'common/navbar.php';
                     </select>
                 </div>
                 <div class="col-md-8">
-                    <input type="text" class="form-control profile-editable-inputs"
-                           id="street-address"
-                           placeholder="Street Address" value="<?php echo $user_streetAddress; ?>" disabled>
+                    <input type="text" id="profile-street-address" name="profile-streetaddress"
+                           class="form-control profile-editable-inputs" placeholder="Street Address"
+                           value="<?php echo !empty($prefill_profile_array['streetaddress']) ? $prefill_profile_array['streetaddress'] : ''; ?>"
+                           pattern="^[A-Za-z0-9 \/.-]{0,55}$"
+                           data-toggle="tooltip" title="No more than 55 characters, can contain A-Z a-z 0-9 - . /"
+                           disabled>
                 </div>
             </div>
             <div class="form-row form-group">
                 <div class="col-md-6">
-                    <input type="text" class="form-control mb-3 mb-md-0 profile-editable-inputs"
-                           id="city-name"
-                           placeholder="City/Suburb" value="<?php echo $user_suburbName; ?>" disabled>
+                    <input type="text" id="profile-city-name" name="profile-suburbname"
+                           class="form-control mb-3 mb-md-0 profile-editable-inputs" placeholder="City/Suburb"
+                           value="<?php echo !empty($prefill_profile_array['suburbname']) ? $prefill_profile_array['suburbname'] : ''; ?>"
+                           pattern="^[A-Za-z0-9 -]{0,30}$"
+                           data-toggle="tooltip" title="No more than 30 characters, can contain A-Z a-z 0-9 -" disabled>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" class="form-control mb-3 mb-md-0 profile-editable-inputs"
-                           id="state-name"
-                           placeholder="State" value="<?php echo $user_stateName; ?>" disabled>
+                    <input type="text" id="profile-state-name" name="profile-statename"
+                           class="form-control mb-3 mb-md-0 profile-editable-inputs" placeholder="State"
+                           value="<?php echo !empty($prefill_profile_array['statename']) ? $prefill_profile_array['statename'] : ''; ?>"
+                           pattern="^[A-Za-z0-9 -]{0,20}$"
+                           data-toggle="tooltip" title="No more than 20 characters, can contain A-Z a-z 0-9 -" disabled>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" pattern="[0-9]{6}"
-                           class="form-control profile-editable-inputs"
-                           id="zip-code"
-                           placeholder="Postcode" value="<?php echo $user_postcode; ?>" disabled>
+                    <input type="text" id="profile-zip-code" name="profile-postcode"
+                           class="form-control profile-editable-inputs" placeholder="Postcode"
+                           value="<?php echo !empty($prefill_profile_array['postcode']) ? $prefill_profile_array['postcode'] : ''; ?>"
+                           pattern="^[0-9]{0,6}$" data-toggle="tooltip" title="No more than 6 digits" disabled>
                 </div>
             </div>
         </div>
@@ -457,14 +530,14 @@ include 'common/navbar.php';
                         data-target="#change-password-modal">Change Password
                 </button>
             </div>
-            <div class="col-3 text-right">
-                <button type="button" value="profile-edit"
-                        class="btn btn-outline-primary px-md-5 profile-edit-button">Edit
+            <div id="profile-edit-cancel-div" class="col-3 text-right">
+                <button type="button" id="profile-edit-button" class="btn btn-outline-primary px-md-5"
+                        value="profile-edit">Edit
                 </button>
             </div>
             <div class="col-3 text-right">
-                <button type="submit" value="profile-save"
-                        class="btn btn-outline-primary px-md-5 disabled profile-save-button" disabled>Save
+                <button type="submit" value="profile-save" id="profile-save-button" name="profile-save-button"
+                        class="btn btn-outline-primary px-md-5 disabled" disabled>Save
                 </button>
             </div>
         </div>
@@ -474,7 +547,7 @@ include 'common/navbar.php';
          aria-labelledby="change-password-modal-title" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
             <div class="modal-content">
-                <form action="photoFrame.php" method="post">
+                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLongTitle">Change Password</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -489,12 +562,14 @@ include 'common/navbar.php';
                         </div>
                         <div class="form-row form-group">
                             <input type="password" class="form-control" placeholder="New Password"
-                                   name="new-password" required>
+                                   name="new-password" pattern="^[A-Z]{1}[A-Za-z0-9]{7,}$" data-toggle="tooltip"
+                                   title="Must start with an uppercase letter, must be 8 or more characters long & can contain A-Z a-z 0-9"
+                                   required>
                         </div>
                         <div class="form-row form-group">
                             <input type="password" class="form-control" placeholder="Repeat New Password"
-                                   name="repeat-password"
-                                   required>
+                                   name="repeat-password" pattern="^[A-Z]{1}[A-Za-z0-9]{7,}$"
+                                   data-toggle="tooltip" title="Must match password" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -510,7 +585,7 @@ include 'common/navbar.php';
 </div>
 
 <?php
-include 'common/footer.html';
+include '../common/footer.php';
 ?>
 <script src="/js/photoFrame.js"></script>
 

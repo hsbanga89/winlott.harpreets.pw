@@ -1,17 +1,17 @@
 <?php
-
 session_start();
 include 'common/functions_file.php';
+$result_returned = remember_user();
 
-$hour = time() - 3600 * 24 * 7;
+if (!isset($result_returned)) {
+    display_login_page('');
+} else {
+    setcookie('winlott-user', "", 1, '/');
+    setcookie('remember-me', "", 1, '/');
+    $_SESSION['winlott-valid-name'] = "";
 
-setcookie('winlott-user', "", $hour);
-setcookie('remember-me', "", $hour);
+    session_unset();
+    session_destroy();
 
-unset($_SESSION['user-name']);
-unset($_SESSION['logged']);
-
-session_unset();
-session_destroy();
-
-redirectTo(0.1, '/index.php');
+    redirectTo(0.1, '/index.php');
+}

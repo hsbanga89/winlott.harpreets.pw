@@ -1,5 +1,6 @@
 <?php
 
+// Connection details changed due to security reasons 
 function openCon(): mysqli
 {
     $dbHost = "localhost";
